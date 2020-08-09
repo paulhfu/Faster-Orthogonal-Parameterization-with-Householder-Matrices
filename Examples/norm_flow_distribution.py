@@ -5,18 +5,20 @@ import torch
 
 class NormFlowDis(TransformedDistribution):
 
-    def __init__(self, prior, transforms, sample_shape, device):
-
+    def __init__(self, prior, transforms, sample_shape):
+        """
+        A transformed distribution with fixed sample shape
+        :param prior: Base distribution
+        :param transforms: list of serial transformations
+        :param sample_shape: fixed sample shape
+        """
         self.base_dist = prior
         self.sample_shape = sample_shape
         super().__init__(self.base_dist, transforms)
 
     def rsample(self):
         """
-        Generates a sample_shape shaped reparameterized sample or sample_shape
-        shaped batch of reparameterized samples if the distribution parameters
-        are batched. Samples first from base distribution and applies
-        `transform()` for every transform in the list.
+        generates an reparameterized sample of the fixed sample shape
         """
         x = self.base_dist.rsample(self.sample_shape)
         for transform in self.transforms:
