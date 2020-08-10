@@ -14,6 +14,8 @@ class TestFastH(unittest.TestCase):
     np.random.seed(seed)
     random.seed(seed)
 
+    method = "1"
+
     def _get_householder_mat(self, v):
         v = v / torch.norm(v, dim=-1, p=2, keepdim=True)
         u = 2 * v
@@ -100,7 +102,7 @@ class TestFastH(unittest.TestCase):
         print("\n" + "+" * 30 + "\n")
 
 
-        H_paper = fast_hmm(v, stride, use_pre_q=False)
+        H_paper = fast_hmm(v, stride, use_pre_q=False, method=self.method)
         out = torch.matmul(H_paper, input)
         inv_out = torch.matmul(H_paper.T, out)
 
@@ -117,7 +119,7 @@ class TestFastH(unittest.TestCase):
         print("\n" + "+" * 30 + "\n")
 
 
-        H_new = fast_hmm(v, stride, use_pre_q=True)
+        H_new = fast_hmm(v, stride, use_pre_q=True, method=self.method)
         out = torch.matmul(H_new, input)
         inv_out = torch.matmul(H_new.T, out)
 
@@ -167,7 +169,7 @@ class TestFastH(unittest.TestCase):
         print("\n" + "+" * 30 + "\n")
 
 
-        H_paper = fast_hmm(v, stride, use_pre_q=False)
+        H_paper = fast_hmm(v, stride, use_pre_q=False, method=self.method)
         out = torch.matmul(H_paper, input)
         inv_out = torch.matmul(H_paper.transpose(-1, -2), out)
 
@@ -184,7 +186,7 @@ class TestFastH(unittest.TestCase):
         print("\n" + "+" * 30 + "\n")
 
 
-        H_new = fast_hmm(v, stride, use_pre_q=True)
+        H_new = fast_hmm(v, stride, use_pre_q=True, method=self.method)
         out = torch.matmul(H_new, input)
         inv_out = torch.matmul(H_new.transpose(-1, -2), out)
 
@@ -233,7 +235,7 @@ class TestFastH(unittest.TestCase):
         print("Inverse-test with an input. Error : ", err2)
         print("\n" + "+" * 30 + "\n")
 
-        H_paper = fast_hmm(v, stride, use_pre_q=False)
+        H_paper = fast_hmm(v, stride, use_pre_q=False, method=self.method)
         out = torch.matmul(H_paper, input)
         inv_out = torch.matmul(H_paper.transpose(-1, -2), out)
 
@@ -249,7 +251,7 @@ class TestFastH(unittest.TestCase):
         print("Inverse-test with an input. Error : ", err3)
         print("\n" + "+" * 30 + "\n")
 
-        H_new = fast_hmm(v, stride, use_pre_q=True)
+        H_new = fast_hmm(v, stride, use_pre_q=True, method=self.method)
         out = torch.matmul(H_new, input)
         inv_out = torch.matmul(H_new.transpose(-1, -2), out)
 

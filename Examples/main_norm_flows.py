@@ -1,15 +1,14 @@
 import torch
-from FastH.fast_h import fast_hmm
 import matplotlib.pyplot as plt
 import numpy as np
-from FastH.h_mul import HMulTransform2D
-from torch.distributions import SigmoidTransform, MultivariateNormal, Normal
+from Examples.h_transforms import HMulTransform2D
+from torch.distributions import Normal
 from norm_flow_distribution import NormFlowDis
-from utils import ind_flat_2_spat, ind_spat_2_flat
+from utils import ind_flat_2_spat
 from scipy.ndimage import gaussian_filter
 from tensorboardX import SummaryWriter
 from skimage.draw import circle
-from torch.distributions import MultivariateNormal, Uniform, TransformedDistribution, SigmoidTransform
+from torch.distributions import SigmoidTransform
 
 
 if torch.cuda.device_count() > 0:
