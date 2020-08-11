@@ -1,6 +1,6 @@
 import torch
 
-def fast_hmm(v, stride=2, use_pre_q=False, method="1"):
+def fast_hmm(v, stride=2, use_pre_q=True, method="1"):
     if method == "1":
         return _fast_hmm_1(v, stride, use_pre_q)
     elif method == "2":
