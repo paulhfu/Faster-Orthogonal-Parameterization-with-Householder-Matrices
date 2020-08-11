@@ -63,7 +63,7 @@ class HMulTransform2D(Transform):
         self.v.register_hook(bw_hook)
 
     def __eq__(self, other):
-        return isinstance(other, HMulTransform)
+        return isinstance(other, HMulTransform2D)
 
     def _call(self, x):
         if self.backward_happened:
