@@ -65,7 +65,7 @@
 \maketitle
 \section{Preliminaries}
 \subsection{The Householder Transformation}
-The Householder transform is the matrix multiplication $T(x)=Hx$ of a vector $x \in \mathbb{R}^n$ and a matrix $H$. The resulting vector is a orthogonal reflection of $x$ on a hyperplane through the origin. \\
+The Householder transform is the matrix multiplication $T(x)=Hx$ of an vector $x \in \mathbb{R}^n$ and a matrix $H$. The resulting vector is a orthogonal reflection of $x$ on a hyperplane through the origin. \\
 Letting this hyperplane be defined by its normal vector $v\in \mathbb{R}^n$, $H$ can be constructed by
 \begin{align}
 	H = I - \frac{2}{v^Tv}vv^t .
@@ -75,7 +75,7 @@ Here $v^Tv$ describes the inner product, $vv^T$ is the outer product and $I$ is 
 Hx = x - 2vv^tx = x - 2v \inp{v}{x} = (x - v \inp{v}{x}) - v \inp{v}{x} .
 \end{align}
 Here $x - v \inp{v}{x}$ removes the part of $x$ that is in the direction $v$, therefore projecting $x$ on the hyperplane $v^{\perp}$. The last term "folds" the projection by the same part to the other side of $v^{\perp}$. \\
-Some important Properties of the Householder transformation are\\
+Some important properties of the Householder transformation are:\\
 \begin{itemize}
 	\item it is symmetric, therefore $H=H^T$
 	\item it is orthogonal, therefore $H^TH=I$
@@ -89,7 +89,7 @@ For a differentiable map $\phi(u)=v$ a infinitesimal change $du$ in $u$ relates 
 \textbf{Thm:}\\
 Let $U\subseteq \mathbb{R}^n$ and the function $\phi : U \rightarrow \mathbb{R}^n$ be injective and differentiable. Then for any real-valued, compactly supported, continuous function $f$
 \begin{align}
-	\int_{\phi(U)} f(v)dv = \int_U f(\phi(u)) |det(D\phi(u))| du
+	\int_{\phi(U)} f(v)dv = \int_U f(\phi(u)) |det(D\phi(u))| du .
 \end{align}
 This equation is referred to as the change of variables formula \cite{wiki:vc}.
 
@@ -101,19 +101,19 @@ Normalizing Flows make intrinsic use of the change of variables formula in order
 where $P(U\in S)$ denotes the probability that $U$ takes a value in some set $S$.
 Using eq. (3) gives
 \begin{align}
-	P(U\in S) = \int_S p_V(\phi^{-1}(u))|det(D\phi^{-1}(u))|du
+	P(U\in S) = \int_S p_V(\phi^{-1}(u))|det(D\phi^{-1}(u))|du .
 \end{align}
-combining eq. (4) and eq. (5) and differentiating yields
+Combining eq. (4) and eq. (5) and differentiating yields
 \begin{align}
-p_U(u) = p_V(\phi^{-1}(u))|det(D\phi^{-1}(u))|
+p_U(u) = p_V(\phi^{-1}(u))|det(D\phi^{-1}(u))| .
 \end{align}
 This means of course, that for a concatenation of $N$ diffeomorphic mappings where $U_N=V$ and $U_{i-1} = \phi_i(U_i)$, $i = N...1$
 \begin{align}
 p_{U_0}(u_0) = p_V(\phi_0^{-1}(\phi_1^{-1}(...\phi_N^{-1}(u_{N-1}))))\prod_{i=1}^{N}|det(D\phi_i^{-1}(u_i))|
 \end{align}
 
-Optimizing the function parameters of the transformations $\phi_i$ by e.g. a gradient method leads to a class of generative models called Normalizing Flows. Usually Normalizing Flows are used to turn a unimodal and simple probability distribution into a more expressive one.\\
-E.g. in Reinforcement Learning it makes sense to learn a simple action policy such as a Normal distribution where the reparameterization trick can be applied in order to backpropagate through the sampling process. However oftentimes a more optimal distribution is one that favors exploration of actions at multiple modes. In that case it makes sense to apply a normalizing flow on the samples of the base Normal distribution to arrive at a more expressive one. The authors in \cite{Kobyzev_2020} provide a good review of Normalizing Flows and its applications.
+Optimizing the function parameters of the transformations $\phi_i$ by e.g. a gradient method leads to a class of generative models called Normalizing Flows. Usually Normalizing Flows are used to turn an unimodal and simple probability distribution into a more expressive one.\\
+E.g. in Reinforcement Learning it makes sense to learn a simple action policy such as a Normal distribution where the reparameterization trick can be applied in order to backpropagate through the sampling process. However oftentimes a more optimal distribution is one that favors exploration of actions at multiple modes. In that case it makes sense to apply a Normalizing Flow on the samples of the base Normal distribution to arrive at a more expressive one. The authors in \cite{Kobyzev_2020} provide a good review of Normalizing Flows and its applications.
 
 
 \subsection{The $WY$ Representation}\label{sec_wy}
@@ -121,7 +121,7 @@ The $WY$ representation as introduced in \cite{WY} is a representation of a prod
 \begin{align}
 	Q_k = \prod_{i=1}^kH_i
 \end{align}
-where $H_i=I + u_iv_i^T$ with $u=-2v$ and $v$ is has a unit L2 norm.\\
+where $H_i=I + u_iv_i^T$ with $u=-2v$ and $v$ has unit L2 norm.\\
 Eq. (9) can be written in the form 
 \begin{align}
 Q_k = I + W_kY_k^T
@@ -135,9 +135,9 @@ where $W_k$ and $Y_k$ are $m$-by-$k$ matrices. Obviously $W_1=u_1$ and $Y_1=v_1$
 	&\text{\hspace{4mm}} = I + [W_{k-1}, Q_{k-1}u_k][Y_{k-1}, v_k]^T \\
 	&= I + W_{k-1}Y_{k-1}(u_kv_k^T + I) + u_kv_k^T \\
 	&\text{\hspace{4mm}} = I + W_{k-1}Y_{k-1}^T H_k + u_kv_k^T \\
-	&\text{\hspace{4mm}} = I + [W_{k-1}, u_k][H_kY_{k-1}, v_k]^T
+	&\text{\hspace{4mm}} = I + [W_{k-1}, u_k][H_kY_{k-1}, v_k]^T .
 \end{align}
-Here $[\cdot, \cdot]$ denotes the column wise concatenation of two matrices. Note, that the equalities in eq. (14) and eq. (17) hold due to the the definition of matrix multiplication and addition. \\
+Here $[\cdot, \cdot]$ denotes the column wise concatenation of two matrices. Note, that the equalities in eq. (14) and eq. (17) hold due to the definition of matrix multiplication and addition. \\
 This result gives rise to the two equivalent update methods
 \begin{itemize}
 	\item Method 1:\\
@@ -154,8 +154,8 @@ This result gives rise to the two equivalent update methods
 
 
 \section{Introduction}
-Householder matrices are attractive because a product of Householder matrices can be used to generate an orthogonal matrix with learnable parameters where the othogonality of the resulting matrix holds by construction. Orthogonal matrices can be seen as a generalization of permutation matrices, because they neither change lenghts of vectors nor relative angles between vectors. In invertible neural networks orthogonal matrices are commonly used for "soft" learned permutations.\\
-It is important to note that orthogonal matrices are not able to change densities (results from the fact that the absolute determinant jacobian is $1$ and eq. (6)), therefore only orthogonal transformations are not sufficient to represent a Normalizing Flow that changes probability densities.\\
+Householder matrices are attractive because a product of them can be used to generate an orthogonal matrix with learnable parameters where the othogonality of the resulting matrix holds by construction. Orthogonal matrices can be seen as a generalization of permutation matrices, because they neither change lenghts of vectors nor relative angles between vectors. In invertible neural networks orthogonal matrices are commonly used for "soft" learned permutations.\\
+It is important to note that orthogonal matrices are not able to change densities (resulting from the fact that the absolute determinant jacobian is $1$ and eq. (6)), therefore only orthogonal transformations are not sufficient to represent a Normalizing Flow that changes probability densities.\\
 The naive method to compute a product of $K$, $m$-by-$m$ Householder matrices has time complexity $O(m^2K)$. The authors in \cite{fast_hm} propose a method based on the $WY$ representation for Householder products that retains this complexity but reduces the amount of involved sequential operations, using accelerated GPU computing.
 
 
