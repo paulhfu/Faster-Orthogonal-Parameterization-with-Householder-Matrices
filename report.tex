@@ -1,0 +1,202 @@
+\documentclass{article}
+\usepackage{adjustbox}
+\usepackage{ragged2e}
+\usepackage{setspace}
+\usepackage{times}
+\usepackage{latexsym}
+\usepackage{url}
+\usepackage{etoolbox}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{mathtools}
+%\usepackage{subfigure}
+\usepackage{color}
+\usepackage{multirow}
+\usepackage{comment}
+\usepackage{pdflscape}
+\usepackage{bibentry}
+\usepackage{caption}
+\usepackage{booktabs}
+\usepackage[noadjust]{cite}
+\usepackage{fancyhdr}
+
+
+% Needed for \phantomsection definition
+\usepackage{hyperref}
+
+% Images
+\usepackage{graphicx}
+\usepackage{subfig}
+
+% Indents first paragraph
+\usepackage{indentfirst}
+
+\usepackage{titlesec}
+
+\usepackage[linesnumbered,ruled,vlined]{algorithm2e}
+
+\titleformat{\chapter}[display]
+{\normalfont\bfseries}{}{0pt}{\Huge}
+\setlength\parindent{0pt}
+
+\newtheorem{defn}{Definition}
+
+% Suppress badness warnings
+\hbadness=99999
+
+\DeclareMathOperator*{\argmax}{arg\,max}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\softmax}{softmax}
+\DeclareMathOperator*{\aggr}{\boxplus}
+\DeclarePairedDelimiterX{\inp}[2]{\langle}{\rangle}{#1, #2}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
+\newcommand{\norm}[1]{\left\lVert#1\right\rVert}
+
+\begin{document}
+
+\title{3D Computer Vision\\
+	Project Report}
+\author{Author: Paul Hilt \\
+		TA: Jakob Kruse \\
+		Lecturer: Prof. Rother}
+
+\maketitle
+\section{Preliminaries}
+\subsection{The Householder Transformation}
+The Householder transform is the matrix multiplication $T(x)=Hx$ of a vector $x \in \mathbb{R}^n$ and a matrix $H$. The resulting vector is a orthogonal reflection of $x$ on a hyperplane through the origin. \\
+Letting this hyperplane be defined by its normal vector $v\in \mathbb{R}^n$, $H$ can be constructed by
+\begin{align}
+	H = I - \frac{2}{v^Tv}vv^t .
+\end{align}
+Here $v^Tv$ describes the inner product, $vv^T$ is the outer product and $I$ is the identity matrix. If $v$ has unit length the equation simplifies to $H = I - 2vv^t$ and the reflection property can be seen using
+\begin{align}
+Hx = x - 2vv^tx = x - 2v \inp{v}{x} = (x - v \inp{v}{x}) - v \inp{v}{x} .
+\end{align}
+Here $x - v \inp{v}{x}$ removes the part of $x$ that is in the direction $v$, therefore projecting $x$ on the hyperplane $v^{\perp}$. The last term "folds" the projection by the same part to the other side of $v^{\perp}$. \\
+Some important Properties of the Householder transformation are\\
+\begin{itemize}
+	\item it is symmetric, therefore $H=H^T$
+	\item it is orthogonal, therefore $H^TH=I$
+	\item from the property of linearity and orthogonality it follows that the jacobian determinant of $T(\cdot)$ equals to $det(DT(\cdot)) = \pm 1$
+	\item the product of multiple Householder matrices is an orthogonal matrix.
+\end{itemize}
+Because the transformation is linear, the jacobian matrix of that transformation is $DT(x) = H$. From the orthogonality of $H$ follows that its absolute determinant $det(H) = \pm 1$. This fact is important for the change of variables formula for integrals explained in the next section. 
+
+\subsection{Change of Valiables}
+For a differentiable map $\phi(u)=v$ a infinitesimal change $du$ in $u$ relates to a change $dv$ in $v$ by $d v = |det(D\phi(u))| d u$ . Here $D\phi(u)$ is the jacobian matrix of the map $\phi$ with respect to the input $u$, $|\cdot|$ is the absolute operator and $det(\cdot)$ is an operator returning the determinant of a matrix.\\
+\textbf{Thm:}\\
+Let $U\subseteq \mathbb{R}^n$ and the function $\phi : U \rightarrow \mathbb{R}^n$ be injective and differentiable. Then for any real-valued, compactly supported, continuous function $f$
+\begin{align}
+	\int_{\phi(U)} f(v)dv = \int_U f(\phi(u)) |det(D\phi(u))| du
+\end{align}
+This equation is referred to as the change of variables formula \cite{wiki:vc}.
+
+\subsection{Normalizing Flows}
+Normalizing Flows make intrinsic use of the change of variables formula in order to obtain probability densities of transformed samples from a base distribution whose probability density is known. In other words, given a random variable $V$ with probability density $p_V$ and the diffeomorphic mapping $\phi(V)=U$. Using the change of variables $p_U$ can be found by
+\begin{align}
+	P(U\in S) = \int_S p_U(u)du = \int_{\phi^{-1}(S)} p_V(v)dv 
+\end{align}
+where $P(U\in S)$ denotes the probability that $U$ takes a value in some set $S$.
+Using eq. (3) gives
+\begin{align}
+	P(U\in S) = \int_S p_V(\phi^{-1}(u))|det(D\phi^{-1}(u))|du
+\end{align}
+combining eq. (4) and eq. (5) and differentiating yields
+\begin{align}
+p_U(u) = p_V(\phi^{-1}(u))|det(D\phi^{-1}(u))|
+\end{align}
+This means of course, that for a concatenation of $N$ diffeomorphic mappings where $U_N=V$ and $U_{i-1} = \phi_i(U_i)$, $i = N...1$
+\begin{align}
+p_{U_0}(u_0) = p_V(\phi_0^{-1}(\phi_1^{-1}(...\phi_N^{-1}(u_{N-1}))))\prod_{i=1}^{N}|det(D\phi_i^{-1}(u_i))|
+\end{align}
+
+Optimizing the function parameters of the transformations $\phi_i$ by e.g. a gradient method leads to a class of generative models called Normalizing Flows. Usually Normalizing Flows are used to turn a unimodal and simple probability distribution into a more expressive one.\\
+E.g. in Reinforcement Learning it makes sense to learn a simple action policy such as a Normal distribution where the reparameterization trick can be applied in order to backpropagate through the sampling process. However oftentimes a more optimal distribution is one that favors exploration of actions at multiple modes. In that case it makes sense to apply a normalizing flow on the samples of the base Normal distribution to arrive at a more expressive one. The authors in \cite{Kobyzev_2020} provide a good review of Normalizing Flows and its applications.
+
+
+\subsection{The $WY$ Representation}\label{sec_wy}
+The $WY$ representation as introduced in \cite{WY} is a representation of a product of $k$ Householder matrices
+\begin{align}
+	Q_k = \prod_{i=1}^kH_i
+\end{align}
+where $H_i=I + u_iv_i^T$ with $u=-2v$ and $v$ is has a unit L2 norm.\\
+Eq. (9) can be written in the form 
+\begin{align}
+Q_k = I + W_kY_k^T
+\end{align}
+where $W_k$ and $Y_k$ are $m$-by-$k$ matrices. Obviously $W_1=u_1$ and $Y_1=v_1$. An iterative method to obtain $W_{k+1}$ and $Y_{k+1}$ from $W_k$ and $Y_k$ goes as follows:\\
+\begin{align}
+	Q_k = Q_{k-q}H_k &= (I + W_{k-1}Y_{k-1}^T)(I + u_kv_k^T) \\
+	&= I + W_{k-1}Y_{k-1}^Tu_kv_k^T +u_kv_k^T + W_{k-1}Y_{k-1}^T\\
+	&= I + (W_{k-1}Y_{k-1} + I)u_kv_k^T + W_{k-1}Y_{k-1}^T \\
+	&\text{\hspace{4mm}} = I + W_{k-1}Y_{k-1}^T + Q_{k-1}u_kv_k^T \\
+	&\text{\hspace{4mm}} = I + [W_{k-1}, Q_{k-1}u_k][Y_{k-1}, v_k]^T \\
+	&= I + W_{k-1}Y_{k-1}(u_kv_k^T + I) + u_kv_k^T \\
+	&\text{\hspace{4mm}} = I + W_{k-1}Y_{k-1}^T H_k + u_kv_k^T \\
+	&\text{\hspace{4mm}} = I + [W_{k-1}, u_k][H_kY_{k-1}, v_k]^T
+\end{align}
+Here $[\cdot, \cdot]$ denotes the column wise concatenation of two matrices. Note, that the equalities in eq. (14) and eq. (17) hold due to the the definition of matrix multiplication and addition. \\
+This result gives rise to the two equivalent update methods
+\begin{itemize}
+	\item Method 1:\\
+		\begin{align}
+			W_k &= [W_{k-1}, Q_{k-1}u_k]\\
+			Y_k &= [Y_{k-1}, v_k]
+		\end{align}
+	\item Method 2:\\
+		\begin{align}
+			W_k &= [W_{k-1}, u_k]\\
+			Y_k &= [H_kY_{k-1}, v_k]
+		\end{align}
+	\end{itemize}
+
+
+\section{Introduction}
+Householder matrices are attractive because a product of Householder matrices can be used to generate an orthogonal matrix with learnable parameters where the othogonality of the resulting matrix holds by construction. Orthogonal matrices can be seen as a generalization of permutation matrices, because they neither change lenghts of vectors nor relative angles between vectors. In invertible neural networks orthogonal matrices are commonly used for "soft" learned permutations.\\
+It is important to note that orthogonal matrices are not able to change densities (results from the fact that the absolute determinant jacobian is $1$ and eq. (6)), therefore only orthogonal transformations are not sufficient to represent a Normalizing Flow that changes probability densities.\\
+The naive method to compute a product of $K$, $m$-by-$m$ Householder matrices has time complexity $O(m^2K)$. The authors in \cite{fast_hm} propose a method based on the $WY$ representation for Householder products that retains this complexity but reduces the amount of involved sequential operations, using accelerated GPU computing.
+
+
+\section{Method}\label{sec:meth}
+The goal is to define a fast algorithm that solves 
+\begin{align}
+	U = \prod_{i=1}^KH_i .
+\end{align}
+Using the $WY$ representation, any sub product of $s$ matrices in eq. (22) can be written as
+\begin{align}
+	P_i = I - W_iY_i^T = \prod_{j=si}^{s(i+1)}H_j \text{ ,\hspace{8mm}} i=1, 2, ..., \floor*{\frac{K}{s}}
+\end{align}
+
+where $W_i$ and $Y_i$ are obtained using method 2 in section \ref{sec_wy}. The parameter $s$ defines a stride that controls the amount of parallel operations. If $\frac{K}{s}$ is not integral and letting $e=\floor{\frac{K}{s}}$,  $E=e+\floor*{\frac{K-es}{2}}$ then the remaining multiplications can be obtained by
+\begin{align}
+	P_i = I - W_iY_i^T = \prod_{j=2(i-e)}^{2((i-e)+1)}H_{j+es} \text{ ,\hspace{8mm}} i=\floor*{\frac{K}{s}}+1, \floor*{\frac{K}{s}}+2, ..., E
+\end{align}
+if $\frac{K-es}{2}$ is not integral then
+\begin{align}
+P_E = P_E H_K
+\end{align}
+and finally
+\begin{align}
+U = \prod_{i=1}^KH_i = \prod_{i=1}^{E} P_i.
+\end{align}
+The important property to notice here is that all $P_i$ can be obtained in parallel and therefore can be seen as one operation concerning the time complexity. Using method 1 in section \ref{sec_wy} has higher time complexity because it is rich in matrix multiplication opposed to method 2 which is merely one outer product per step $k$ (calculating $H_k$ from its vector representation). It seems that reducing $s$ results in more parallel operations and is therefore faster but a reduction of $s$ also results in more sequential operations in eq. (26) since it produces more $P_i$. The optimal value for $s$ also depends on the amount of memory of the GPU and has therefore no strict analytical solution.\\
+
+\section{Experiments and Results}\label{sec:exp}
+The method in section \ref{sec:meth} has been implemented in python under heavy use of the pytorch library which allows for accelerated GPU computing. Using advanced indexing methods, the parallelizations in eq. (23) and eq. (24) can be achieved, relying on the parallelism induced by optimizations of batched matrix multiplication in pytorch. The method was tested and evaluated against the naive method of multiplying Householder matrices on a GeForce RTX 2080 Ti GPU under full workload.\\
+The stride parameter was cross validated for the value grid $s=[1..15]$, \\ $m=[10, 20, 30, ..., 550]$ and $K=m$ with $100$ iterations. There is some dependence between the "fastest" stride $s'$ and $m$ but this dependence seems not to be linear which is why it is difficult to find an optimal $s$ for a given $m$. For the range of $m$ that was used in the test, $s'$ was always between $2$ and $12$. A good default value is $s'=2$. If $m$ is so large, that there can be no parallelism because it would not fit on the GPU than $s'=1$ is always the fastest which induces no additional batching and therefore no additional parallelism.
+
+\section{Conclusion}
+The authors in \cite{fast_hm} set the parameter $s$ to the number of samples in the mini batch or columns in the matrix, that $U$ is multiplied with and constraint their method to $K=m$. Further they assume $\frac{K}{s}$ is integral therefore they do not need eq. (25-27). There is no apparent reasoning why $s$ should be dependent on the mini batch size. The method implemented in this work has no constraints on $s$ or $K$. However a empirical evaluation for an optimal value for $s=s'$ shows that $s'=2$ is a good value.\\
+Method 1 in section \ref{sec_wy} has been implemented as well. While it has the advantage of producing the intermediate vale $Q_k=P_i$ which saves the calculation of $P_i$, it showed to be slower than method 2 because of its inherent matrix multiplications.\\
+I could not find an API where the optimization methods in pytorch's matrix multiplication are explained. However in some blogs and posts it is mentioned, that pytorch always uses the full available GPU space for batched (easy to parallelize) operations such as matrix multiplication. To strengthen that assumtion, an explicit parallelization method, that uses pytorch streams was implemented and showed to be slower than the batched matrix multiplications.\\
+The authors in \cite{fast_hm} also provide a CUDA implementation with python bindings of their method but this library could not be imported because of clashing CUDA versions. Building it from sources also failed, probably due to clashing nvcc versions.
+
+\setstretch{1.0}
+\phantomsection~\label{sec:ref}
+\addcontentsline{toc}{section}{References}
+\bibliographystyle{IEEEtran}
+\bibliography{bibliography.bib}
+\pagebreak
+\end{document}

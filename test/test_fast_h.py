@@ -3,6 +3,10 @@ import unittest
 import torch
 import numpy as np
 import random
+from timeit import default_timer as timer
+
+import os
+print(os.environ.get('CUDA_PATH'))
 
 
 class TestFastH(unittest.TestCase):
@@ -262,9 +266,77 @@ class TestFastH(unittest.TestCase):
         assert err2 < 1e-8
         assert err3 < 1e-8
         print("leveraging precomputed Qs method: ")
-        print("Identity-test. Error: ", err1)
-        print("Error to naive method: ", err2)
-        print("Inverse-test with an input. Error : ", err3)
+        print(f"Identity-test. Error: {err1}")
+        print(f"Error to naive method: {err2}")
+        print(f"Inverse-test with an input. Error: {err3}")
+
+
+    def test_compare_latency(self):
+        print("\n" + "#" * 30)
+        print("compare latency of fast_h to naive method")
+        # set some params
+        torch.set_default_tensor_type(torch.DoubleTensor)
+        if torch.cuda.device_count() > 0:
+            device = "cuda:0"
+        else:
+            device = 'cpu'
+
+        bs = 128
+        ds = np.arange(10, 550, 10).tolist() * 10
+        stride_rel = 0
+        for d in ds:
+            v = torch.randn((d, d)).to(device)
+            x = torch.randn((d, bs)).to(device)
+
+            strides = np.arange(1, min(d, 15), 1)
+            best_time = np.inf
+            best_stride = 2
+            best_stride_noq = 2
+
+            # layer_paper = Orthogonal(d, bs)
+            #
+            # start = timer()
+            # _ = layer_paper(x)
+            # paper_time = timer() - start
+
+            # start = timer()
+            # _ = self._naive_method_1d(v)
+            # naive_time = timer() - start
+            #
+            # print("Latency of naive method: ", naive_time)
+
+            for method in ["2"]:
+                best_time_noq = np.inf
+                for stride in strides:
+
+                    start = timer()
+                    _ = fast_hmm(v, stride, use_pre_q=False, method=method)
+                    m_no_q_time = timer() - start
+
+                    # print(m_no_q_time)
+
+                    if m_no_q_time < best_time_noq:
+                        best_time_noq = m_no_q_time
+                        best_stride_noq = stride
+
+                    if method == "1":
+                        start = timer()
+                        _ = fast_hmm(v, stride, use_pre_q=True, method=method)
+                        m_time = timer() - start
+                        if m_time < best_time:
+                            best_time = m_time
+                            best_stride = stride
+
+                print("###############RESULTS method " + method + "##############")
+                if method == "1":
+                    print(f'fastest stride was: {best_stride}  ; {best_time} s')
+                    print(f'fastest stride without using Q was: {best_stride_noq}  ;  {best_time_noq}, s')
+                else:
+                    print(f'fastest stride was: {best_stride_noq}  ;  {best_time_noq} s')
+                    print(f'using {d} matrices')
+                    stride_rel += d / best_stride
+
+        print(f"Average best stride-d relation is {stride_rel/len(ds)}")
 
 
 if __name__ == '__main__':
