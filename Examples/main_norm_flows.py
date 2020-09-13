@@ -30,7 +30,7 @@ flow_net = [HMulTransform2D(2, sample_size, device),
             HMulTransform2D(2, sample_size, device),
             SigmoidTransform(),
             ]
-
+#@TODO!!! Only orthogonal projections are not sufficient to alter probability densities. They are only good for soft permutaions. Need to add some powerful, ideally learned, non linear transforms as well.
 params = []
 for module in flow_net:
     if isinstance(module, HMulTransform2D):

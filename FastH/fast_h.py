@@ -135,7 +135,7 @@ def _fast_hmm_2(v, stride=None):
     return H
 
 
-def _fast_hmm_2_1(v, stride):
+def _fast_hmm_2_explicit(v, stride):
     """
         this implementation makes use of explicit parallelism with pytorch streams. This has shown to be not faster
         than the optimizations for batches of matrix multiplications in pytorch's matmul functions.

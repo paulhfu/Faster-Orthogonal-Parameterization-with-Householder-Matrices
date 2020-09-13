@@ -18,7 +18,7 @@ class TestFastH(unittest.TestCase):
     np.random.seed(seed)
     random.seed(seed)
 
-    method = "1"
+    method = "2"
 
     def _get_householder_mat(self, v):
         v = v / torch.norm(v, dim=-1, p=2, keepdim=True)
@@ -283,6 +283,7 @@ class TestFastH(unittest.TestCase):
 
         bs = 128
         ds = np.arange(10, 550, 10).tolist() * 10
+        ds = [200]
         stride_rel = 0
         for d in ds:
             v = torch.randn((d, d)).to(device)
